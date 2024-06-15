@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  STYLIST
+  ADMIN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id                  String        @id @default(cuid())
+  fullName            String        @db.VarChar(255)
+  email               String        @unique @db.VarChar(255)
+  avatar              String        @db.VarChar(255)
+  phoneNumber         String        @db.VarChar(14)
+  password            String        @db.VarChar(255)
+  role                Role          @default(CUSTOMER)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  branchId            Int?
+  reviews             Review[]
+  customerReservation Reservation[] @relation("customer_reservation")
+  stylistAppointment  Reservation[] @relation("stylist_appointment")
+  branch              Branch?       @relation(fields: [branchId], references: [id])
+}
+
+model Review {
+  id            Int         @id @default(autoincrement())
+  customerId    String
+  reservationId Int         @unique
+  comment       String      @db.VarChar(1000)
+  rating        Int         @db.TinyInt
+  customer      User        @relation(fields: [customerId], references: [id])
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model Treatment {
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(500)
+  description  String        @db.VarChar(1000)
+  price        Decimal       @db.Decimal(10, 2)
+  image        String        @db.VarChar(2500)
+  duration     Int           @db.TinyInt
+  branchId     Int
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  reservations Reservation[]
+}
+
+model Reservation {
+  id                Int               @id @default(autoincrement())
+  customerId        String
+  stylistId         String
+  dateTime          DateTime          @db.DateTime()
+  reservationStatus ReservationStatus @default(PENDING)
+  cancelledReason   String            @db.VarChar(1000)
+  review            Review?
+  invoice           Invoice?
+  treatmentId       Int
+  treatment         Treatment         @relation(fields: [treatmentId], references: [id])
+  customer          User              @relation("customer_reservation", fields: [customerId], references: [id])
+  stylist           User              @relation("stylist_appointment", fields: [stylistId], references: [id])
+}
+
+model Branch {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(255)
+  location    String      @db.VarChar(500)
+  coordinate  String      @db.VarChar(255)
+  openingTime DateTime    @db.Time()
+  closingTime DateTime    @db.Time()
+  treatments  Treatment[]
+  stylists    User[]
+}
+
+model Invoice {
+  id            Int         @id @default(autoincrement())
+  reservationId Int         @unique
+  totalPrice    Decimal     @db.Decimal(10, 2)
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+}

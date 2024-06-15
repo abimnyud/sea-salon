@@ -5,7 +5,7 @@ import "@/styles/./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SEA Salon – Beauty and Elegance Redefined",
+  title: "SEA Salon Admin Dashboard",
   description: "Beauty and Elegance Redefined",
 };
 
@@ -14,9 +14,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
-  );
+  return <div>{children}</div>;
 }
