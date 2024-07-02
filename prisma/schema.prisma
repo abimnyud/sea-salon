@@ -23,6 +23,7 @@ enum ReservationStatus {
   PENDING
   CONFIRMED
   CANCELLED
+  DONE
 }
 
 model User {
@@ -36,7 +37,7 @@ model User {
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   branchId            Int?
-  reviews             Review[]
+  customerReviews     Review[]
   customerReservation Reservation[] @relation("customer_reservation")
   stylistAppointment  Reservation[] @relation("stylist_appointment")
   branch              Branch?       @relation(fields: [branchId], references: [id])
@@ -50,18 +51,35 @@ model Review {
   rating        Int         @db.TinyInt
   customer      User        @relation(fields: [customerId], references: [id])
   reservation   Reservation @relation(fields: [reservationId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?   @db.DateTime()
 }
 
 model Treatment {
-  id           Int           @id @default(autoincrement())
-  name         String        @db.VarChar(500)
-  description  String        @db.VarChar(1000)
-  price        Decimal       @db.Decimal(10, 2)
-  image        String        @db.VarChar(2500)
-  duration     Int           @db.TinyInt
-  branchId     Int
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  reservations Reservation[]
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(500)
+  description       String              @db.VarChar(1000)
+  price             Decimal             @db.Decimal(12, 2)
+  image             String              @db.VarChar(2500)
+  duration          Int                 @db.SmallInt
+  reservations      Reservation[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?           @db.DateTime()
+  TreatmentOnBranch TreatmentOnBranch[]
+}
+
+model TreatmentOnBranch {
+  treatmentId Int
+  branchId    Int
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  treatment   Treatment @relation(fields: [treatmentId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? @db.DateTime()
+
+  @@id([treatmentId, branchId])
 }
 
 model Reservation {
@@ -70,24 +88,33 @@ model Reservation {
   stylistId         String
   dateTime          DateTime          @db.DateTime()
   reservationStatus ReservationStatus @default(PENDING)
-  cancelledReason   String            @db.VarChar(1000)
+  cancelledReason   String?            @db.VarChar(1000)
   review            Review?
   invoice           Invoice?
   treatmentId       Int
+  branchId          Int
   treatment         Treatment         @relation(fields: [treatmentId], references: [id])
+  branch            Branch            @relation(fields: [branchId], references: [id])
   customer          User              @relation("customer_reservation", fields: [customerId], references: [id])
   stylist           User              @relation("stylist_appointment", fields: [stylistId], references: [id])
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?         @db.DateTime()
 }
 
 model Branch {
-  id          Int         @id @default(autoincrement())
-  name        String      @db.VarChar(255)
-  location    String      @db.VarChar(500)
-  coordinate  String      @db.VarChar(255)
-  openingTime DateTime    @db.Time()
-  closingTime DateTime    @db.Time()
-  treatments  Treatment[]
-  stylists    User[]
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  address           String              @db.VarChar(500)
+  coordinate        String              @db.VarChar(255)
+  openingTime       String              @db.VarChar(5)
+  closingTime       String              @db.VarChar(5)
+  stylists          User[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?           @db.DateTime()
+  TreatmentOnBranch TreatmentOnBranch[]
+  Reservation       Reservation[]
 }
 
 model Invoice {
@@ -95,4 +122,6 @@ model Invoice {
   reservationId Int         @unique
   totalPrice    Decimal     @db.Decimal(10, 2)
   reservation   Reservation @relation(fields: [reservationId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
