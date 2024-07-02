@@ -4,6 +4,7 @@ import BranchList from "@/components/branch/BranchList";
 import UserReservationDataTable from "@/components/reservations/UserReservationDataTable";
 import { StylistList } from "@/components/stylists/StylistList";
 import ClientComponent from "./client-component";
+import { Suspense } from "react";
 
 export default async function ReservationsPage() {
   const [branchesData, treatmentsData, stylistsData] = await Promise.all([
@@ -32,7 +33,9 @@ export default async function ReservationsPage() {
         <h2 className="text-xl font-semibold">Riwayat pemesanan</h2>
         <UserReservationDataTable />
       </section>
-      <ClientComponent branchesData={branchesData} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ClientComponent branchesData={branchesData} />
+      </Suspense>
     </main>
   );
 }
