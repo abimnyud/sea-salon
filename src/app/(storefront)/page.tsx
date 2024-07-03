@@ -18,7 +18,8 @@ export default async function Home() {
             width={500}
             alt="Woman with flowers"
             className="object-contain"
-          ></Image>
+            priority
+          />
         </div>
         <div className="flex flex-col gap-5">
           <h1 className="flex flex-col font-bold text-cetacean text-6xl font-sora">

@@ -65,7 +65,13 @@ export async function signIn(_: any, formData: FormData) {
    */
   const token = await jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!)
 
-  cookies().set("token", token)
+  cookies().set({
+    name: "token",
+    value: token,
+    maxAge: 1000 * 60 * 60,
+    httpOnly: true,
+  })
+
 
   return {
     success: true
@@ -159,8 +165,10 @@ export async function signUp(_: any, formData: FormData) {
     cookies().set({
       name: "token",
       value: token,
-      maxAge: 60 * 60,
+      maxAge: 1000 * 60 * 60,
+      httpOnly: true,
     })
+
 
     return {
       success: true
